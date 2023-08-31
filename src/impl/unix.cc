@@ -167,7 +167,17 @@ Serial::SerialImpl::reconfigurePort ()
   struct termios options; // The options for the file descriptor
 
   if (tcgetattr(fd_, &options) == -1) {
-    THROW (IOException, "::tcgetattr");
+	switch (errno){
+	case EBADF:
+		THROW (IOException, "::tcgetattr - bad file descriptor" );
+		break;
+	case ENOTTY:
+		THROW (IOException, "::tcgetattr - The file associated with fildes is not a terminal." );
+		break;
+	default:
+		THROW (IOException, errno );
+		break;
+	}
   }
 
   // set up raw mode / no echo / binary
